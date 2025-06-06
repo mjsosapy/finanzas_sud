@@ -1,0 +1,760 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gestión de Presupuesto - Barrio</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            color: #333;
+        }
+
+        .container {
+            max-width: 400px;
+            margin: 0 auto;
+            padding: 20px;
+            min-height: 100vh;
+        }
+
+        .card {
+            background: white;
+            border-radius: 16px;
+            padding: 24px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+            margin-bottom: 20px;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .header h1 {
+            color: #4a5568;
+            font-size: 24px;
+            margin-bottom: 8px;
+        }
+
+        .header p {
+            color: #718096;
+            font-size: 14px;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #4a5568;
+            font-size: 14px;
+        }
+
+        input, select, textarea {
+            width: 100%;
+            padding: 12px 16px;
+            border: 2px solid #e2e8f0;
+            border-radius: 8px;
+            font-size: 16px;
+            transition: border-color 0.3s;
+        }
+
+        input:focus, select:focus, textarea:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .btn {
+            width: 100%;
+            padding: 14px;
+            background: #667eea;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+
+        .btn:hover {
+            background: #5a67d8;
+        }
+
+        .btn-secondary {
+            background: #718096;
+        }
+
+        .btn-secondary:hover {
+            background: #4a5568;
+        }
+
+        .btn-danger {
+            background: #e53e3e;
+        }
+
+        .btn-danger:hover {
+            background: #c53030;
+        }
+
+        .screen {
+            display: none;
+        }
+
+        .screen.active {
+            display: block;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+            margin-bottom: 24px;
+        }
+
+        .stat-card {
+            background: #f7fafc;
+            padding: 16px;
+            border-radius: 8px;
+            text-align: center;
+        }
+
+        .stat-value {
+            font-size: 20px;
+            font-weight: bold;
+            color: #2d3748;
+        }
+
+        .stat-label {
+            font-size: 12px;
+            color: #718096;
+            margin-top: 4px;
+        }
+
+        .expense-item, .budget-item {
+            background: #f7fafc;
+            padding: 16px;
+            border-radius: 8px;
+            margin-bottom: 12px;
+            border-left: 4px solid #667eea;
+        }
+
+        .expense-header, .budget-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 8px;
+        }
+
+        .expense-description, .budget-org {
+            font-weight: 600;
+            color: #2d3748;
+        }
+
+        .expense-amount, .budget-amount {
+            font-weight: bold;
+            color: #667eea;
+        }
+
+        .expense-date {
+            font-size: 12px;
+            color: #718096;
+        }
+
+        .nav-tabs {
+            display: flex;
+            background: #f7fafc;
+            border-radius: 8px;
+            padding: 4px;
+            margin-bottom: 20px;
+        }
+
+        .nav-tab {
+            flex: 1;
+            padding: 8px 12px;
+            text-align: center;
+            border: none;
+            background: transparent;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: all 0.3s;
+        }
+
+        .nav-tab.active {
+            background: white;
+            color: #667eea;
+            font-weight: 600;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        .logout-btn {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            background: rgba(255,255,255,0.2);
+            color: white;
+            border: none;
+            padding: 8px 12px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 12px;
+        }
+
+        .user-info {
+            background: rgba(255,255,255,0.1);
+            color: white;
+            padding: 12px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 8px;
+            background: #e2e8f0;
+            border-radius: 4px;
+            overflow: hidden;
+            margin-top: 8px;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: #48bb78;
+            border-radius: 4px;
+            transition: width 0.3s;
+        }
+
+        .alert {
+            padding: 12px;
+            border-radius: 8px;
+            margin-bottom: 16px;
+            font-size: 14px;
+        }
+
+        .alert-error {
+            background: #fed7d7;
+            color: #c53030;
+            border: 1px solid #fc8181;
+        }
+
+        .alert-success {
+            background: #c6f6d5;
+            color: #22543d;
+            border: 1px solid #68d391;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 40px 20px;
+            color: #718096;
+        }
+
+        .empty-state img {
+            width: 80px;
+            height: 80px;
+            margin-bottom: 16px;
+            opacity: 0.5;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <button class="logout-btn" onclick="logout()" style="display: none;" id="logoutBtn">Cerrar Sesión</button>
+        
+        <!-- Pantalla de Login -->
+        <div id="login" class="screen active">
+            <div class="card">
+                <div class="header">
+                    <h1>🏛️ Gestión de Presupuesto</h1>
+                    <p>Sistema para Organizaciones del Barrio</p>
+                </div>
+                
+                <div id="loginAlert"></div>
+                
+                <form onsubmit="login(event)">
+                    <div class="form-group">
+                        <label for="username">Usuario</label>
+                        <input type="text" id="username" required placeholder="Ingrese su usuario">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="password">Contraseña</label>
+                        <input type="password" id="password" required placeholder="Ingrese su contraseña">
+                    </div>
+                    
+                    <button type="submit" class="btn">Ingresar</button>
+                </form>
+                
+                <div style="margin-top: 20px; padding: 16px; background: #f7fafc; border-radius: 8px;">
+                    <p style="font-size: 14px; color: #4a5568; margin-bottom: 8px;"><strong>Usuarios de prueba:</strong></p>
+                    <p style="font-size: 12px; color: #718096;">👨‍💼 Obispo: <code>obispo / 123</code></p>
+                    <p style="font-size: 12px; color: #718096;">👩‍💼 Presidenta SR: <code>presidenta.sr / 123</code></p>
+                    <p style="font-size: 12px; color: #718096;">👩‍💼 Presidenta Primaria: <code>presidenta.primaria / 123</code></p>
+                    <p style="font-size: 11px; color: #a0aec0; margin-top: 8px;">📝 Los datos se mantienen en memoria durante esta sesión</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Pantalla del Obispo (Administrador) -->
+        <div id="admin" class="screen">
+            <div class="user-info">
+                <strong>👨‍💼 Obispo Juan Pérez</strong><br>
+                <small>Administrador del Sistema</small>
+            </div>
+            
+            <div class="nav-tabs">
+                <button class="nav-tab active" onclick="showAdminTab('budgets')">Presupuestos</button>
+                <button class="nav-tab" onclick="showAdminTab('expenses')">Gastos</button>
+            </div>
+
+            <!-- Tab: Gestión de Presupuestos -->
+            <div id="budgets" class="tab-content active">
+                <div class="card">
+                    <h3 style="margin-bottom: 20px; color: #4a5568;">💰 Asignar Presupuesto</h3>
+                    
+                    <div id="budgetAlert"></div>
+                    
+                    <form onsubmit="assignBudget(event)">
+                        <div class="form-group">
+                            <label for="organization">Organización</label>
+                            <select id="organization" required>
+                                <option value="">Seleccionar organización</option>
+                                <option value="Sociedad de Socorro">Sociedad de Socorro</option>
+                                <option value="Hombres Jóvenes">Hombres Jóvenes</option>
+                                <option value="Mujeres Jóvenes">Mujeres Jóvenes</option>
+                                <option value="Primaria">Primaria</option>
+                                <option value="Escuela Dominical">Escuela Dominical</option>
+                            </select>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="amount">Monto (Gs)</label>
+                            <input type="number" id="amount" required placeholder="0" min="0">
+                        </div>
+                        
+                        <button type="submit" class="btn">Asignar Presupuesto</button>
+                    </form>
+                </div>
+
+                <div class="card">
+                    <h3 style="margin-bottom: 20px; color: #4a5568;">📊 Presupuestos Asignados</h3>
+                    <div id="budgetsList"></div>
+                </div>
+            </div>
+
+            <!-- Tab: Visualización de Gastos -->
+            <div id="expenses" class="tab-content">
+                <div class="card">
+                    <h3 style="margin-bottom: 20px; color: #4a5568;">🔍 Gastos por Organización</h3>
+                    
+                    <div class="form-group">
+                        <label for="expenseOrg">Seleccionar Organización</label>
+                        <select id="expenseOrg" onchange="showExpensesByOrg()">
+                            <option value="">Todas las organizaciones</option>
+                            <option value="Sociedad de Socorro">Sociedad de Socorro</option>
+                            <option value="Hombres Jóvenes">Hombres Jóvenes</option>
+                            <option value="Mujeres Jóvenes">Mujeres Jóvenes</option>
+                            <option value="Primaria">Primaria</option>
+                            <option value="Escuela Dominical">Escuela Dominical</option>
+                        </select>
+                    </div>
+                    
+                    <div id="expensesList"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Pantalla de Presidenta de Organización -->
+        <div id="org" class="screen">
+            <div class="user-info">
+                <strong id="orgUserName">👩‍💼 Presidenta</strong><br>
+                <small id="orgUserRole">Organización</small>
+            </div>
+
+            <div class="card">
+                <h3 style="margin-bottom: 20px; color: #4a5568;">💼 Mi Presupuesto</h3>
+                
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <div class="stat-value" id="totalBudget">Gs 0</div>
+                        <div class="stat-label">Presupuesto Total</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-value" id="availableBudget">Gs 0</div>
+                        <div class="stat-label">Disponible</div>
+                    </div>
+                </div>
+                
+                <div id="budgetProgress"></div>
+            </div>
+
+            <div class="card">
+                <h3 style="margin-bottom: 20px; color: #4a5568;">➕ Registrar Gasto</h3>
+                
+                <div id="expenseAlert"></div>
+                
+                <form onsubmit="addExpense(event)">
+                    <div class="form-group">
+                        <label for="expenseDescription">Descripción del Gasto</label>
+                        <textarea id="expenseDescription" required placeholder="Ej: Compra de cuadernos para actividad" rows="3"></textarea>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="expenseAmount">Monto (Gs)</label>
+                        <input type="number" id="expenseAmount" required placeholder="0" min="0">
+                    </div>
+                    
+                    <button type="submit" class="btn">Guardar Gasto</button>
+                </form>
+            </div>
+
+            <div class="card">
+                <h3 style="margin-bottom: 20px; color: #4a5568;">📋 Historial de Gastos</h3>
+                <div id="orgExpensesList"></div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Datos simulados (almacenamiento en memoria)
+        let currentUser = null;
+        let budgets = {};
+        let expenses = [];
+
+        // Usuarios de prueba
+        const users = {
+            'obispo': { password: '123', role: 'admin', name: 'Obispo Juan Pérez' },
+            'presidenta.sr': { password: '123', role: 'org', name: 'María González', org: 'Sociedad de Socorro' },
+            'presidenta.primaria': { password: '123', role: 'org', name: 'Ana Torres', org: 'Primaria' }
+        };
+
+        // Funciones de utilidad
+        function formatCurrency(amount) {
+            return new Intl.NumberFormat('es-PY', {
+                style: 'currency',
+                currency: 'PYG',
+                minimumFractionDigits: 0
+            }).format(amount).replace('PYG', 'Gs');
+        }
+
+        function showAlert(elementId, message, type = 'error') {
+            const alertDiv = document.getElementById(elementId);
+            alertDiv.innerHTML = `<div class="alert alert-${type}">${message}</div>`;
+            setTimeout(() => {
+                alertDiv.innerHTML = '';
+            }, 3000);
+        }
+
+        function saveData() {
+            // Los datos se mantienen en memoria durante la sesión
+            console.log('Datos guardados en memoria');
+        }
+
+        // Funciones de navegación
+        function showScreen(screenId) {
+            document.querySelectorAll('.screen').forEach(screen => {
+                screen.classList.remove('active');
+            });
+            document.getElementById(screenId).classList.add('active');
+            
+            document.getElementById('logoutBtn').style.display = screenId === 'login' ? 'none' : 'block';
+        }
+
+        function showAdminTab(tabId) {
+            document.querySelectorAll('.nav-tab').forEach(tab => {
+                tab.classList.remove('active');
+            });
+            document.querySelectorAll('.tab-content').forEach(content => {
+                content.classList.remove('active');
+            });
+            
+            event.target.classList.add('active');
+            document.getElementById(tabId).classList.add('active');
+            
+            if (tabId === 'budgets') {
+                renderBudgetsList();
+            } else if (tabId === 'expenses') {
+                showExpensesByOrg();
+            }
+        }
+
+        // Funciones de autenticación
+        function login(event) {
+            event.preventDefault();
+            
+            const username = document.getElementById('username').value;
+            const password = document.getElementById('password').value;
+            
+            if (users[username] && users[username].password === password) {
+                currentUser = { username, ...users[username] };
+                
+                if (currentUser.role === 'admin') {
+                    showScreen('admin');
+                    renderBudgetsList();
+                } else {
+                    showScreen('org');
+                    setupOrgScreen();
+                }
+                
+                document.getElementById('username').value = '';
+                document.getElementById('password').value = '';
+            } else {
+                showAlert('loginAlert', 'Usuario o contraseña incorrectos');
+            }
+        }
+
+        function logout() {
+            currentUser = null;
+            showScreen('login');
+        }
+
+        // Funciones del Obispo
+        function assignBudget(event) {
+            event.preventDefault();
+            
+            const organization = document.getElementById('organization').value;
+            const amount = parseInt(document.getElementById('amount').value);
+            
+            if (amount <= 0) {
+                showAlert('budgetAlert', 'El monto debe ser mayor a 0');
+                return;
+            }
+            
+            budgets[organization] = {
+                total: amount,
+                used: budgets[organization]?.used || 0,
+                assigned: new Date().toLocaleDateString()
+            };
+            
+            saveData();
+            renderBudgetsList();
+            
+            document.getElementById('organization').value = '';
+            document.getElementById('amount').value = '';
+            
+            showAlert('budgetAlert', `Presupuesto asignado exitosamente a ${organization}`, 'success');
+        }
+
+        function renderBudgetsList() {
+            const container = document.getElementById('budgetsList');
+            
+            if (Object.keys(budgets).length === 0) {
+                container.innerHTML = '<div class="empty-state">📝 No hay presupuestos asignados</div>';
+                return;
+            }
+            
+            container.innerHTML = Object.entries(budgets).map(([org, budget]) => {
+                const available = budget.total - budget.used;
+                const percentage = (budget.used / budget.total) * 100;
+                
+                return `
+                    <div class="budget-item">
+                        <div class="budget-header">
+                            <div class="budget-org">${org}</div>
+                            <div class="budget-amount">${formatCurrency(budget.total)}</div>
+                        </div>
+                        <div style="display: flex; justify-content: space-between; font-size: 14px; color: #718096; margin-bottom: 8px;">
+                            <span>Usado: ${formatCurrency(budget.used)}</span>
+                            <span>Disponible: ${formatCurrency(available)}</span>
+                        </div>
+                        <div class="progress-bar">
+                            <div class="progress-fill" style="width: ${percentage}%; background: ${percentage > 90 ? '#e53e3e' : percentage > 70 ? '#ed8936' : '#48bb78'}"></div>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        function showExpensesByOrg() {
+            const selectedOrg = document.getElementById('expenseOrg').value;
+            const container = document.getElementById('expensesList');
+            
+            let filteredExpenses = expenses;
+            if (selectedOrg) {
+                filteredExpenses = expenses.filter(expense => expense.organization === selectedOrg);
+            }
+            
+            if (filteredExpenses.length === 0) {
+                container.innerHTML = '<div class="empty-state">📝 No hay gastos registrados</div>';
+                return;
+            }
+            
+            container.innerHTML = filteredExpenses.map(expense => `
+                <div class="expense-item">
+                    <div class="expense-header">
+                        <div class="expense-description">${expense.description}</div>
+                        <div class="expense-amount">${formatCurrency(expense.amount)}</div>
+                    </div>
+                    <div style="display: flex; justify-content: space-between; font-size: 12px; color: #718096;">
+                        <span>${expense.organization}</span>
+                        <span>${expense.date}</span>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        // Funciones de Presidenta de Organización
+        function setupOrgScreen() {
+            document.getElementById('orgUserName').textContent = `👩‍💼 ${currentUser.name}`;
+            document.getElementById('orgUserRole').textContent = currentUser.org;
+            
+            updateBudgetDisplay();
+            renderOrgExpenses();
+        }
+
+        function updateBudgetDisplay() {
+            const orgBudget = budgets[currentUser.org] || { total: 0, used: 0 };
+            const available = orgBudget.total - orgBudget.used;
+            const percentage = orgBudget.total > 0 ? (orgBudget.used / orgBudget.total) * 100 : 0;
+            
+            document.getElementById('totalBudget').textContent = formatCurrency(orgBudget.total);
+            document.getElementById('availableBudget').textContent = formatCurrency(available);
+            
+            const progressContainer = document.getElementById('budgetProgress');
+            if (orgBudget.total > 0) {
+                progressContainer.innerHTML = `
+                    <div style="margin-bottom: 8px; font-size: 14px; color: #4a5568;">
+                        Progreso de gastos: ${percentage.toFixed(1)}%
+                    </div>
+                    <div class="progress-bar">
+                        <div class="progress-fill" style="width: ${percentage}%; background: ${percentage > 90 ? '#e53e3e' : percentage > 70 ? '#ed8936' : '#48bb78'}"></div>
+                    </div>
+                `;
+            } else {
+                progressContainer.innerHTML = '<div style="text-align: center; color: #718096; font-size: 14px;">⚠️ No hay presupuesto asignado</div>';
+            }
+        }
+
+        function addExpense(event) {
+            event.preventDefault();
+            
+            const description = document.getElementById('expenseDescription').value;
+            const amount = parseInt(document.getElementById('expenseAmount').value);
+            const orgBudget = budgets[currentUser.org] || { total: 0, used: 0 };
+            const available = orgBudget.total - orgBudget.used;
+            
+            if (amount <= 0) {
+                showAlert('expenseAlert', 'El monto debe ser mayor a 0');
+                return;
+            }
+            
+            if (amount > available) {
+                showAlert('expenseAlert', `Monto excede el presupuesto disponible (${formatCurrency(available)})`);
+                return;
+            }
+            
+            const expense = {
+                id: Date.now(),
+                description,
+                amount,
+                organization: currentUser.org,
+                date: new Date().toLocaleDateString(),
+                user: currentUser.name
+            };
+            
+            expenses.push(expense);
+            
+            if (!budgets[currentUser.org]) {
+                budgets[currentUser.org] = { total: 0, used: 0 };
+            }
+            budgets[currentUser.org].used += amount;
+            
+            saveData();
+            updateBudgetDisplay();
+            renderOrgExpenses();
+            
+            document.getElementById('expenseDescription').value = '';
+            document.getElementById('expenseAmount').value = '';
+            
+            showAlert('expenseAlert', 'Gasto registrado exitosamente', 'success');
+        }
+
+        function renderOrgExpenses() {
+            const container = document.getElementById('orgExpensesList');
+            const orgExpenses = expenses.filter(expense => expense.organization === currentUser.org);
+            
+            if (orgExpenses.length === 0) {
+                container.innerHTML = '<div class="empty-state">📝 No hay gastos registrados</div>';
+                return;
+            }
+            
+            container.innerHTML = orgExpenses.map(expense => `
+                <div class="expense-item">
+                    <div class="expense-header">
+                        <div class="expense-description">${expense.description}</div>
+                        <div class="expense-amount">${formatCurrency(expense.amount)}</div>
+                    </div>
+                    <div class="expense-date">${expense.date}</div>
+                </div>
+            `).join('');
+        }
+
+        // Inicialización
+        document.addEventListener('DOMContentLoaded', function() {
+            // Datos de ejemplo para la demo (precargados en memoria)
+            budgets = {
+                'Sociedad de Socorro': { total: 500000, used: 150000, assigned: '2025-01-15' },
+                'Primaria': { total: 300000, used: 75000, assigned: '2025-01-15' }
+            };
+            
+            expenses = [
+                {
+                    id: 1,
+                    description: 'Compra de materiales para actividad de servicio',
+                    amount: 80000,
+                    organization: 'Sociedad de Socorro',
+                    date: '2025-05-20',
+                    user: 'María González'
+                },
+                {
+                    id: 2,
+                    description: 'Refrigerios para reunión mensual',
+                    amount: 70000,
+                    organization: 'Sociedad de Socorro',
+                    date: '2025-05-15',
+                    user: 'María González'
+                },
+                {
+                    id: 3,
+                    description: 'Materiales didácticos para clases',
+                    amount: 45000,
+                    organization: 'Primaria',
+                    date: '2025-05-18',
+                    user: 'Ana Torres'
+                },
+                {
+                    id: 4,
+                    description: 'Premios para programa del Día del Niño',
+                    amount: 30000,
+                    organization: 'Primaria',
+                    date: '2025-05-25',
+                    user: 'Ana Torres'
+                }
+            ];
+            
+            console.log('Aplicación inicializada con datos de ejemplo');
+        });
+    </script>
+</body>
+</html>

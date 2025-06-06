@@ -1,0 +1,70 @@
+name: diocesan_funds_optimized
+description: Sistema optimizado de control de fondos diocesanos con múltiples extracciones y generación de PDFs
+publish_to: 'none' # Remove this line if you want to publish to pub.dev
+version: 1.0.0+1
+
+environment:
+  sdk: '>=3.0.0 <4.0.0'
+
+dependencies:
+  flutter:
+    sdk: flutter
+  flutter_localizations:
+    sdk: flutter
+
+  # UI & Icons
+  cupertino_icons: ^1.0.6
+
+  # Database
+  sqflite: ^2.3.0
+  path: ^1.8.3 # Ya estaba, necesario para p.basename y otras operaciones de ruta
+
+  # Internationalization & Formatting
+  intl: ^0.19.0
+
+  # Image Handling
+  image_picker: ^1.1.2
+  path_provider: ^2.1.5
+  permission_handler: ^12.0.0+1
+
+  # UI Components
+  dotted_border: ^2.1.0 # No lo hemos usado explícitamente pero estaba en tu original
+
+  # Device Info
+  device_info_plus: ^11.3.0 # No lo hemos usado explícitamente pero estaba en tu original
+
+  # PDF Generation & Original Viewing/Printing
+  pdf: ^3.11.3 # Para generar los PDFs
+  printing: ^5.12.0 # Para imprimir o compartir (si se mantiene esa funcionalidad)
+
+  # Storage
+  shared_preferences: ^2.5.3
+
+  # PDF Viewing (Alternativa anterior, puedes mantenerla o quitarla si ya no la usas)
+  flutter_pdfview: ^1.4.0+1 
+
+  # NUEVA DEPENDENCIA para renderizar PDF a imagen
+  pdf_render: ^1.4.6 # O la versión más reciente que encuentres
+  open_filex: ^4.7.0
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^3.0.0
+
+flutter:
+  uses-material-design: true
+
+  # Configuración de assets (puedes agregar aquí fuentes, imágenes, etc.)
+  # assets:
+  #   - assets/ # Descomenta y añade tu carpeta si vas a probar con PDFs de assets
+  #   - images/
+  #   - icons/
+
+  # Configuración de fuentes personalizadas (opcional)
+  # fonts:
+  #   - family: Inter
+  #     fonts:
+  #       - asset: fonts/Inter-Regular.ttf
+  #       - asset: fonts/Inter-Bold.ttf
+  #         weight: 700

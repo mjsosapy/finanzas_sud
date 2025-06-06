@@ -1,0 +1,63 @@
+lib
+├── constants
+│   └── app_constants.dart
+├── database
+│   └── db_helper.dart
+├── main.dart
+├── models
+│   ├── enums
+│   ├── enums.dart
+│   │   └── expense_category_type.dart
+│   └── models.dart
+├── screens
+│   ├── auth
+│   │   └── login_screen.dart
+│   ├── categories
+│   │   └── category_management_screen.dart
+│   ├── configuration
+│   │   └── account_configuration_screen.dart
+│   ├── debug
+│   │   └── pdf_preview_screen.dart
+│   ├── expenses
+│   │   └── expense_registration_screen.dart
+│   ├── extraction
+│   │   └── extraction_detail_screen.dart
+│   ├── extractions
+│   │   ├── add_extraction_screen.dart
+│   │   ├── extraction_detail_screen.dart
+│   │   └── extraction_list_screen.dart
+│   └── main
+│       └── main_menu_screen.dart
+├── services
+│   ├── category_service.dart
+│   ├── configuration_service.dart
+│   ├── deposit_service.dart
+│   ├── expense_service.dart
+│   ├── extraction_service.dart
+│   ├── pdf_storage_service.dart
+│   └── photo_service.dart
+├── utils
+│   ├── currency_formatter.dart
+│   ├── date_formatters.dart
+│   ├── number_to_words_helper.dart
+│   └── pdf_generator.dart
+└── widgets
+    ├── category_management
+    │   └── category_form_dialog.dart
+    ├── common
+    │   ├── custom_card.dart
+    │   ├── empty_state_widget.dart
+    │   ├── loading_widget.dart
+    │   ├── multiple_extractions_guide_widget.dart
+    │   ├── receipt_image_widget.dart
+    │   └── simple_pdf_view_screen.dart
+    ├── extraction_detail
+    │   ├── basic_info_card.dart
+    │   ├── deposit_dialog.dart
+    │   ├── deposits_section.dart
+    │   ├── expense_item.dart
+    │   ├── expenses_list.dart
+    │   └── financial_summary_card.dart
+    └── forms
+        ├── additional_extraction_dialog.dart
+        └── conditional_fields.dart

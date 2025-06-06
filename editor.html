@@ -1,0 +1,1071 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Editor PDF con Vista Previa - Autorización de Desembolso</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 10px;
+        }
+
+        .container {
+            max-width: 1800px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #2c3e50 0%, #34495e 100%);
+            color: white;
+            padding: 20px;
+            text-align: center;
+        }
+
+        .header h1 {
+            font-size: 2em;
+            margin-bottom: 5px;
+            font-weight: 300;
+        }
+
+        .header p {
+            opacity: 0.9;
+            font-size: 1em;
+        }
+
+        .main-content {
+            display: grid;
+            grid-template-columns: 320px 1fr 400px;
+            min-height: 700px;
+        }
+
+        .controls-panel {
+            background: #f8f9fa;
+            padding: 20px;
+            border-right: 1px solid #e9ecef;
+            overflow-y: auto;
+            max-height: 80vh;
+        }
+
+        .controls-section {
+            background: white;
+            border-radius: 10px;
+            padding: 15px;
+            margin-bottom: 15px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+        }
+
+        .controls-section h3 {
+            color: #2c3e50;
+            margin-bottom: 10px;
+            font-size: 1em;
+            border-bottom: 2px solid #3498db;
+            padding-bottom: 5px;
+        }
+
+        .control-group {
+            margin-bottom: 12px;
+        }
+
+        .control-group label {
+            display: block;
+            margin-bottom: 3px;
+            font-weight: 500;
+            color: #555;
+            font-size: 12px;
+        }
+
+        .control-group input[type="range"] {
+            width: 100%;
+            margin-bottom: 3px;
+        }
+
+        .control-group input[type="number"] {
+            width: 100%;
+            padding: 6px 8px;
+            border: 2px solid #e1e8ed;
+            border-radius: 6px;
+            font-size: 12px;
+            transition: border-color 0.3s;
+        }
+
+        .control-group input[type="number"]:focus {
+            outline: none;
+            border-color: #3498db;
+        }
+
+        .range-value {
+            display: inline-block;
+            background: #3498db;
+            color: white;
+            padding: 1px 6px;
+            border-radius: 10px;
+            font-size: 10px;
+            font-weight: bold;
+            min-width: 30px;
+            text-align: center;
+        }
+
+        .preview-panel {
+            background: #f5f5f5;
+            padding: 20px;
+            overflow-y: auto;
+            max-height: 80vh;
+            display: flex;
+            justify-content: center;
+            align-items: flex-start;
+        }
+
+        .pdf-preview {
+            background: white;
+            width: 600px;
+            min-height: 800px;
+            box-shadow: 0 8px 25px rgba(0,0,0,0.15);
+            border-radius: 8px;
+            transform: scale(0.85);
+            transform-origin: top center;
+        }
+
+        .pdf-content {
+            padding: var(--margin-v, 20px) var(--margin-h, 25px);
+            font-family: Arial, sans-serif;
+        }
+
+        .pdf-title {
+            text-align: center;
+            font-weight: bold;
+            margin-bottom: var(--title-spacing, 20px);
+            font-size: var(--title-size, 16px);
+        }
+
+        .pdf-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 1px;
+        }
+
+        .pdf-table td {
+            border: var(--border-width, 0.5px) solid black;
+            padding: var(--cell-padding-v, 4px) var(--cell-padding-h, 6px);
+            vertical-align: top;
+            height: var(--cell-height, 25px);
+        }
+
+        .pdf-label {
+            font-weight: bold;
+            font-size: var(--label-size, 8px);
+            margin-bottom: 3px;
+            display: block;
+        }
+
+        .pdf-value {
+            font-size: var(--value-size, 10px);
+            line-height: 1.2;
+        }
+
+        .pdf-checkbox-row td {
+            text-align: center;
+            height: var(--cell-height, 25px);
+        }
+
+        .pdf-checkbox {
+            width: var(--checkbox-size, 12px);
+            height: var(--checkbox-size, 12px);
+            border: 1px solid black;
+            display: inline-block;
+            margin-bottom: 4px;
+            position: relative;
+        }
+
+        .pdf-checkbox.checked {
+            background: black;
+        }
+
+        .pdf-checkbox.checked::after {
+            content: 'X';
+            color: white;
+            font-weight: bold;
+            font-size: var(--checkbox-font-size, 10px);
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+        }
+
+        .pdf-checkbox-label {
+            font-weight: bold;
+            font-size: var(--label-size, 8px);
+        }
+
+        .signature-area {
+            margin-top: var(--signature-spacing, 30px);
+            display: flex;
+            justify-content: space-around;
+            gap: 40px;
+        }
+
+        .signature-block {
+            text-align: center;
+            flex: 1;
+        }
+
+        .signature-line {
+            width: var(--signature-line-length, 160px);
+            height: var(--signature-line-height, 25px);
+            border-bottom: var(--signature-line-width, 1px) solid black;
+            margin: 0 auto 5px;
+        }
+
+        .signature-label {
+            font-weight: bold;
+            font-size: var(--label-size, 8px);
+        }
+
+        .pdf-footer {
+            text-align: center;
+            font-style: italic;
+            font-size: var(--footer-size, 8px);
+            margin-top: 30px;
+            color: #666;
+        }
+
+        .currency-value {
+            font-weight: bold;
+            text-align: center;
+        }
+
+        .code-panel {
+            background: #1e1e1e;
+            color: #d4d4d4;
+            overflow: auto;
+            position: relative;
+        }
+
+        .code-header {
+            background: #2d2d30;
+            padding: 15px 20px;
+            border-bottom: 1px solid #3e3e42;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .code-title {
+            color: #569cd6;
+            font-size: 1.1em;
+            font-weight: bold;
+        }
+
+        .copy-btn {
+            background: linear-gradient(135deg, #27ae60, #2ecc71);
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 20px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: all 0.3s;
+            font-size: 12px;
+        }
+
+        .copy-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 15px rgba(46, 204, 113, 0.4);
+        }
+
+        .toggle-code {
+            background: #3498db;
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 20px;
+            cursor: pointer;
+            font-weight: bold;
+            margin-left: 10px;
+            font-size: 12px;
+        }
+
+        #codeOutput {
+            padding: 20px;
+            font-family: 'Consolas', 'Monaco', monospace;
+            font-size: 11px;
+            line-height: 1.4;
+            white-space: pre-wrap;
+            word-wrap: break-word;
+            max-height: 60vh;
+            overflow-y: auto;
+        }
+
+        .syntax-keyword { color: #569cd6; }
+        .syntax-string { color: #ce9178; }
+        .syntax-number { color: #b5cea8; }
+        .syntax-comment { color: #6a9955; font-style: italic; }
+        .syntax-class { color: #4ec9b0; }
+        .syntax-function { color: #dcdcaa; }
+
+        .notification {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: #27ae60;
+            color: white;
+            padding: 12px 20px;
+            border-radius: 8px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+            transform: translateX(400px);
+            transition: transform 0.3s ease;
+            z-index: 1000;
+            font-size: 14px;
+        }
+
+        .notification.show {
+            transform: translateX(0);
+        }
+
+        .code-panel.hidden {
+            display: none;
+        }
+
+        .main-content.no-code {
+            grid-template-columns: 320px 1fr;
+        }
+
+        @media (max-width: 1400px) {
+            .main-content {
+                grid-template-columns: 300px 1fr;
+            }
+            .code-panel {
+                display: none;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .main-content {
+                grid-template-columns: 1fr;
+            }
+            
+            .controls-panel {
+                max-height: none;
+                border-right: none;
+                border-bottom: 1px solid #e9ecef;
+            }
+
+            .pdf-preview {
+                transform: scale(0.6);
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>📋 Editor PDF con Vista Previa</h1>
+            <p>Ajusta los parámetros y ve el resultado en tiempo real</p>
+        </div>
+
+        <div class="main-content" id="mainContent">
+            <div class="controls-panel">
+                <div class="controls-section">
+                    <h3>📝 Tipografía</h3>
+                    
+                    <div class="control-group">
+                        <label>Tamaño título:</label>
+                        <input type="range" id="titleFontSize" min="12" max="24" value="16" step="1">
+                        <span class="range-value" id="titleFontSizeValue">16</span>
+                    </div>
+
+                    <div class="control-group">
+                        <label>Tamaño etiquetas:</label>
+                        <input type="range" id="labelFontSize" min="6" max="12" value="8" step="0.5">
+                        <span class="range-value" id="labelFontSizeValue">8</span>
+                    </div>
+
+                    <div class="control-group">
+                        <label>Tamaño valores:</label>
+                        <input type="range" id="valueFontSize" min="8" max="16" value="10" step="0.5">
+                        <span class="range-value" id="valueFontSizeValue">10</span>
+                    </div>
+
+                    <div class="control-group">
+                        <label>Tamaño footer:</label>
+                        <input type="range" id="footerFontSize" min="6" max="12" value="8" step="0.5">
+                        <span class="range-value" id="footerFontSizeValue">8</span>
+                    </div>
+                </div>
+
+                <div class="controls-section">
+                    <h3>📏 Espaciado</h3>
+                    
+                    <div class="control-group">
+                        <label>Altura de celda:</label>
+                        <input type="range" id="cellHeight" min="15" max="40" value="25" step="1">
+                        <span class="range-value" id="cellHeightValue">25</span>
+                    </div>
+
+                    <div class="control-group">
+                        <label>Padding horizontal:</label>
+                        <input type="range" id="paddingH" min="2" max="12" value="6" step="1">
+                        <span class="range-value" id="paddingHValue">6</span>
+                    </div>
+
+                    <div class="control-group">
+                        <label>Padding vertical:</label>
+                        <input type="range" id="paddingV" min="2" max="8" value="4" step="1">
+                        <span class="range-value" id="paddingVValue">4</span>
+                    </div>
+
+                    <div class="control-group">
+                        <label>Espacio título:</label>
+                        <input type="range" id="titleSpacing" min="10" max="40" value="20" step="2">
+                        <span class="range-value" id="titleSpacingValue">20</span>
+                    </div>
+
+                    <div class="control-group">
+                        <label>Espacio firmas:</label>
+                        <input type="range" id="signatureSpacing" min="20" max="60" value="30" step="5">
+                        <span class="range-value" id="signatureSpacingValue">30</span>
+                    </div>
+                </div>
+
+                <div class="controls-section">
+                    <h3>🔲 Bordes</h3>
+                    
+                    <div class="control-group">
+                        <label>Grosor borde:</label>
+                        <input type="range" id="borderWidth" min="0.2" max="2" value="0.5" step="0.1">
+                        <span class="range-value" id="borderWidthValue">0.5</span>
+                    </div>
+
+                    <div class="control-group">
+                        <label>Línea firma:</label>
+                        <input type="range" id="signatureLineWidth" min="0.5" max="2" value="1" step="0.1">
+                        <span class="range-value" id="signatureLineWidthValue">1</span>
+                    </div>
+
+                    <div class="control-group">
+                        <label>Ancho línea:</label>
+                        <input type="range" id="signatureLineLength" min="120" max="200" value="160" step="10">
+                        <span class="range-value" id="signatureLineLengthValue">160</span>
+                    </div>
+
+                    <div class="control-group">
+                        <label>Alto línea:</label>
+                        <input type="range" id="signatureLineHeight" min="15" max="35" value="25" step="2">
+                        <span class="range-value" id="signatureLineHeightValue">25</span>
+                    </div>
+                </div>
+
+                <div class="controls-section">
+                    <h3>☑️ Checkboxes</h3>
+                    
+                    <div class="control-group">
+                        <label>Tamaño checkbox:</label>
+                        <input type="range" id="checkboxSize" min="8" max="16" value="12" step="1">
+                        <span class="range-value" id="checkboxSizeValue">12</span>
+                    </div>
+
+                    <div class="control-group">
+                        <label>Fuente checkbox:</label>
+                        <input type="range" id="checkboxFontSize" min="6" max="12" value="10" step="0.5">
+                        <span class="range-value" id="checkboxFontSizeValue">10</span>
+                    </div>
+                </div>
+
+                <div class="controls-section">
+                    <h3>📄 Márgenes</h3>
+                    
+                    <div class="control-group">
+                        <label>Margen vertical:</label>
+                        <input type="number" id="marginVertical" min="10" max="50" value="20" step="5">
+                    </div>
+
+                    <div class="control-group">
+                        <label>Margen horizontal:</label>
+                        <input type="number" id="marginHorizontal" min="15" max="50" value="25" step="5">
+                    </div>
+                </div>
+            </div>
+
+            <div class="preview-panel">
+                <div class="pdf-preview">
+                    <div class="pdf-content" id="pdfContent">
+                        <div class="pdf-title">Autorización de desembolso MLS</div>
+                        
+                        <!-- Fila 1: Datos básicos -->
+                        <table class="pdf-table">
+                            <tr>
+                                <td style="width: 43%;">
+                                    <span class="pdf-label">Nombre de la unidad</span>
+                                    <div class="pdf-value">Barrio San Vicente</div>
+                                </td>
+                                <td style="width: 28%;">
+                                    <span class="pdf-label">Número de la unidad</span>
+                                    <div class="pdf-value">12345</div>
+                                </td>
+                                <td style="width: 29%;">
+                                    <span class="pdf-label">Fecha</span>
+                                    <div class="pdf-value">04/06/2025</div>
+                                </td>
+                            </tr>
+                        </table>
+
+                        <!-- Fila 2: Pagado a y Firma -->
+                        <table class="pdf-table">
+                            <tr>
+                                <td style="width: 60%; height: 37px;">
+                                    <span class="pdf-label">Pagado a (Nombre de la persona, comercio o unidad que recibe los fondos)</span>
+                                    <div class="pdf-value">Juan Pérez - Comercial San José</div>
+                                </td>
+                                <td style="width: 40%; height: 37px;">
+                                    <span class="pdf-label">Firma del que recibe los fondos</span>
+                                    <div class="pdf-value"></div>
+                                </td>
+                            </tr>
+                        </table>
+
+                        <!-- Fila 3: Propósito y Referencias -->
+                        <table class="pdf-table">
+                            <tr>
+                                <td style="width: 43%; height: 50px;">
+                                    <span class="pdf-label">Propósito del gasto</span>
+                                    <div class="pdf-value">Compra de materiales de limpieza para el mantenimiento de la capilla</div>
+                                </td>
+                                <td style="width: 57%; height: 50px;">
+                                    <span class="pdf-label">Número de referencia ( Ext. MMDD-$$$/<br>compra N° autorización,<br>o N° de Cheque o Vale Vista )</span>
+                                    <div class="pdf-value">
+                                        REF-240601-001<br>
+                                        AUT-456789<br>
+                                        CV-123456
+                                    </div>
+                                </td>
+                            </tr>
+                        </table>
+
+                        <!-- Fila 4: Checkboxes y Monto -->
+                        <table class="pdf-table">
+                            <tr class="pdf-checkbox-row">
+                                <td style="width: 20%;">
+                                    <div class="pdf-checkbox"></div>
+                                    <div class="pdf-checkbox-label">Ofrendas de ayuno</div>
+                                </td>
+                                <td style="width: 20%;">
+                                    <div class="pdf-checkbox checked"></div>
+                                    <div class="pdf-checkbox-label">Presupuesto</div>
+                                </td>
+                                <td style="width: 20%;">
+                                    <div class="pdf-checkbox"></div>
+                                    <div class="pdf-checkbox-label">Propiedades</div>
+                                </td>
+                                <td style="width: 20%;">
+                                    <div class="pdf-checkbox"></div>
+                                    <div class="pdf-checkbox-label">Otros</div>
+                                </td>
+                                <td style="width: 20%;">
+                                    <span class="pdf-label">Importe</span>
+                                    <div class="pdf-value currency-value">$150.000</div>
+                                </td>
+                            </tr>
+                        </table>
+
+                        <!-- Fila 5: Importe en letras -->
+                        <table class="pdf-table">
+                            <tr>
+                                <td style="height: 37px;">
+                                    <span class="pdf-label">Importe en letras</span>
+                                    <div class="pdf-value">Ciento cincuenta mil guaraníes</div>
+                                </td>
+                            </tr>
+                        </table>
+
+                        <!-- Firmas -->
+                        <div class="signature-area">
+                            <div class="signature-block">
+                                <div class="signature-line"></div>
+                                <div class="signature-label">Firma y aclaración del líder de la unidad</div>
+                                <div class="pdf-value" style="font-style: italic; margin-top: 2px;">Carlos González</div>
+                            </div>
+                            <div class="signature-block">
+                                <div class="signature-line"></div>
+                                <div class="signature-label">Firma y aclaración del líder secretario o consejero</div>
+                                <div class="pdf-value" style="font-style: italic; margin-top: 2px;">María López</div>
+                            </div>
+                        </div>
+
+                        <!-- Footer -->
+                        <div class="pdf-footer">
+                            Este documento debe archivarse firmado y junto con los comprobantes de respaldo del gasto, para las auditorias semestrales
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="code-panel" id="codePanel">
+                <div class="code-header">
+                    <div class="code-title">📱 Código Dart</div>
+                    <div>
+                        <button class="copy-btn" onclick="copyCode()">📋 Copiar</button>
+                        <button class="toggle-code" onclick="toggleCode()">👁️ Ocultar</button>
+                    </div>
+                </div>
+                <div id="codeOutput"></div>
+            </div>
+        </div>
+    </div>
+
+    <div id="notification" class="notification">
+        ✅ Código copiado al portapapeles
+    </div>
+
+    <script>
+        // Configuración inicial
+        const config = {
+            titleFontSize: 16,
+            labelFontSize: 8,
+            valueFontSize: 10,
+            footerFontSize: 8,
+            cellHeight: 25,
+            paddingH: 6,
+            paddingV: 4,
+            titleSpacing: 20,
+            signatureSpacing: 30,
+            borderWidth: 0.5,
+            signatureLineWidth: 1,
+            signatureLineLength: 160,
+            signatureLineHeight: 25,
+            checkboxSize: 12,
+            checkboxFontSize: 10,
+            marginVertical: 20,
+            marginHorizontal: 25
+        };
+
+        // Función para actualizar la vista previa
+        function updatePreview() {
+            const content = document.getElementById('pdfContent');
+            content.style.setProperty('--title-size', config.titleFontSize + 'px');
+            content.style.setProperty('--label-size', config.labelFontSize + 'px');
+            content.style.setProperty('--value-size', config.valueFontSize + 'px');
+            content.style.setProperty('--footer-size', config.footerFontSize + 'px');
+            content.style.setProperty('--cell-height', config.cellHeight + 'px');
+            content.style.setProperty('--cell-padding-h', config.paddingH + 'px');
+            content.style.setProperty('--cell-padding-v', config.paddingV + 'px');
+            content.style.setProperty('--title-spacing', config.titleSpacing + 'px');
+            content.style.setProperty('--signature-spacing', config.signatureSpacing + 'px');
+            content.style.setProperty('--border-width', config.borderWidth + 'px');
+            content.style.setProperty('--signature-line-width', config.signatureLineWidth + 'px');
+            content.style.setProperty('--signature-line-length', config.signatureLineLength + 'px');
+            content.style.setProperty('--signature-line-height', config.signatureLineHeight + 'px');
+            content.style.setProperty('--checkbox-size', config.checkboxSize + 'px');
+            content.style.setProperty('--checkbox-font-size', config.checkboxFontSize + 'px');
+            content.style.setProperty('--margin-v', config.marginVertical + 'px');
+            content.style.setProperty('--margin-h', config.marginHorizontal + 'px');
+        }
+
+        // Función para generar el código Dart
+        function generateCode() {
+            return `import 'dart:typed_data';
+import 'package:flutter/services.dart' show rootBundle;
+import 'package:pdf/pdf.dart';
+import 'package:pdf/widgets.dart' as pw;
+
+import '../models/models.dart';
+import '../utils/date_formatters.dart';
+
+class PdfGenerator {
+  static Future<Uint8List> generarAutorizacionDesembolso(
+    Expense expense,
+    String? nombreUnidadLider,
+    String? nombreUnidadSecretario,
+    String numeroDeUnidad,
+  ) async {
+    final pdf = pw.Document();
+
+    final String fechaGasto = DateFormatters.formatShortDate(expense.date);
+    final String importeFormateado = DateFormatters.formatCurrency(expense.amount);
+
+    bool esOfrenda = expense.categoryName?.toLowerCase().contains('ofrenda de ayuno') ?? false;
+    bool esPresupuesto = expense.categoryName?.toLowerCase().contains('presupuesto') ?? false;
+    bool esPropiedades = expense.categoryName?.toLowerCase().contains('propiedades') ?? false;
+    bool esOtros = !(esOfrenda || esPresupuesto || esPropiedades);
+
+    pdf.addPage(
+      pw.Page(
+        pageFormat: PdfPageFormat.a4,
+        margin: const pw.EdgeInsets.symmetric(vertical: ${config.marginVertical}, horizontal: ${config.marginHorizontal}),
+        build: (pw.Context context) {
+          const double lightBorder = ${config.borderWidth};
+          const PdfColor borderColor = PdfColors.black;
+          const double labelFontSize = ${config.labelFontSize};
+          const double valueFontSize = ${config.valueFontSize};
+          const cellPadding = pw.EdgeInsets.symmetric(horizontal: ${config.paddingH}, vertical: ${config.paddingV});
+          const double defaultCellHeight = ${config.cellHeight}.0;
+
+          return pw.Column(
+            crossAxisAlignment: pw.CrossAxisAlignment.start,
+            children: [
+              // Título
+              pw.Center(
+                child: pw.Text(
+                  'Autorización de desembolso MLS',
+                  style: pw.TextStyle(fontSize: ${config.titleFontSize}, fontWeight: pw.FontWeight.bold),
+                ),
+              ),
+              pw.SizedBox(height: ${config.titleSpacing}),
+
+              // Fila 1: Nombre Unidad, Número Unidad, Fecha
+              pw.Table(
+                border: pw.TableBorder.all(color: borderColor, width: lightBorder),
+                columnWidths: const {
+                  0: pw.FlexColumnWidth(3),
+                  1: pw.FlexColumnWidth(2),
+                  2: pw.FlexColumnWidth(2),
+                },
+                children: [
+                  pw.TableRow(children: [
+                    _buildTableCell('Nombre de la unidad', expense.nombreUnidad ?? '', labelFontSize, valueFontSize, cellPadding, defaultCellHeight),
+                    _buildTableCell('Número de la unidad', numeroDeUnidad, labelFontSize, valueFontSize, cellPadding, defaultCellHeight),
+                    _buildTableCell('Fecha', fechaGasto, labelFontSize, valueFontSize, cellPadding, defaultCellHeight),
+                  ]),
+                ],
+              ),
+
+              // Fila 2: Pagado a y Firma del que recibe
+              pw.Table(
+                border: pw.TableBorder.all(color: borderColor, width: lightBorder),
+                columnWidths: const {
+                  0: pw.FlexColumnWidth(3),
+                  1: pw.FlexColumnWidth(2),
+                },
+                children: [
+                  pw.TableRow(children: [
+                    _buildTableCell('Pagado a (Nombre de la persona, comercio o unidad que recibe los fondos)', expense.pagadoA ?? '', labelFontSize, valueFontSize, cellPadding, defaultCellHeight * 1.5, valueMaxLines: 2),
+                    _buildTableCell('Firma del que recibe los fondos', '', labelFontSize, valueFontSize, cellPadding, defaultCellHeight * 1.5, isSignature: true),
+                  ]),
+                ],
+              ),
+
+              // Fila 3: Beneficiario Ofrendas (condicional)
+              if (esOfrenda && (expense.beneficiarioOfrenda != null && expense.beneficiarioOfrenda!.isNotEmpty)) ...[
+                pw.Table(
+                  border: pw.TableBorder.all(color: borderColor, width: lightBorder),
+                  columnWidths: const {
+                    0: pw.FlexColumnWidth(3),
+                    1: pw.FlexColumnWidth(2),
+                  },
+                  children: [
+                    pw.TableRow(children: [
+                      _buildTableCell('Nombre del beneficiario de las Ofrendas de Ayuno', expense.beneficiarioOfrenda!, labelFontSize, valueFontSize, cellPadding, defaultCellHeight * 1.5, valueMaxLines: 2),
+                      _buildTableCell('Firma del beneficiario', '', labelFontSize, valueFontSize, cellPadding, defaultCellHeight * 1.5, isSignature: true),
+                    ]),
+                  ],
+                ),
+              ],
+              
+              // Fila 4: Propósito del gasto y Número de referencia
+              pw.Table(
+                 border: pw.TableBorder.all(color: borderColor, width: lightBorder),
+                 columnWidths: const {
+                  0: pw.FlexColumnWidth(3),
+                  1: pw.FlexColumnWidth(4),
+                 },
+                 children: [
+                   pw.TableRow(children: [
+                     _buildTableCell('Propósito del gasto', expense.description, labelFontSize, valueFontSize, cellPadding, defaultCellHeight * 2, valueMaxLines: 3),
+                     _buildMultiFieldCell([
+                       {'label': 'Número de referencia ( Ext. MMDD-\\\$\\\$\\\$/', 'value': expense.numeroReferencia ?? ''},
+                       {'label': 'compra N° autorización,', 'value': expense.id?.toString() ?? ''},
+                       {'label': 'o N° de Cheque o Vale Vista )', 'value': expense.numeroReferenciaAdicional ?? ''},
+                     ], labelFontSize, valueFontSize, cellPadding, defaultCellHeight * 2),
+                   ])
+                 ]
+              ),
+
+              // Fila 5: Checkboxes y Monto
+              pw.Table(
+                border: pw.TableBorder.all(color: borderColor, width: lightBorder),
+                columnWidths: const {
+                  0: pw.FlexColumnWidth(1),
+                  1: pw.FlexColumnWidth(1),
+                  2: pw.FlexColumnWidth(1),
+                  3: pw.FlexColumnWidth(1),
+                  4: pw.FlexColumnWidth(2),
+                },
+                children: [
+                  pw.TableRow(children: [
+                    _buildCheckboxCell('Ofrendas de ayuno', esOfrenda, labelFontSize, cellPadding, defaultCellHeight),
+                    _buildCheckboxCell('Presupuesto', esPresupuesto, labelFontSize, cellPadding, defaultCellHeight),
+                    _buildCheckboxCell('Propiedades', esPropiedades, labelFontSize, cellPadding, defaultCellHeight),
+                    _buildCheckboxCell('Otros', esOtros, labelFontSize, cellPadding, defaultCellHeight),
+                    _buildTableCell('Importe', importeFormateado, labelFontSize, valueFontSize + 2, cellPadding, defaultCellHeight, isCurrency: true),
+                  ])
+                ]
+              ),
+              
+              // Fila 6: Importe en letras
+              pw.Table(
+                border: pw.TableBorder.all(color: borderColor, width: lightBorder),
+                children: [
+                  pw.TableRow(children: [
+                    _buildTableCell('Importe en letras', expense.importeEnLetras ?? '', labelFontSize, valueFontSize, cellPadding, defaultCellHeight * 1.5, valueMaxLines: 2),
+                  ])
+                ]
+              ),
+
+              pw.SizedBox(height: ${config.signatureSpacing}),
+
+              // Firmas de líderes
+              pw.Row(
+                mainAxisAlignment: pw.MainAxisAlignment.spaceEvenly,
+                children: [
+                  pw.Expanded(
+                    child: _buildPdfSignatureBlock(
+                        'Firma y aclaración del líder de la unidad', 
+                        nombreUnidadLider ?? '', labelFontSize, valueFontSize)
+                  ),
+                  pw.SizedBox(width: 40),
+                  pw.Expanded(
+                    child: _buildPdfSignatureBlock(
+                        'Firma y aclaración del líder secretario o consejero', 
+                        nombreUnidadSecretario ?? '', labelFontSize, valueFontSize)
+                  ),
+                ],
+              ),
+              
+              pw.Spacer(),
+
+              // Footer
+              pw.Center(
+                child: pw.Text(
+                  'Este documento debe archivarse firmado y junto con los comprobantes de respaldo del gasto, para las auditorias semestrales',
+                  style: pw.TextStyle(fontSize: ${config.footerFontSize}, fontStyle: pw.FontStyle.italic),
+                  textAlign: pw.TextAlign.center,
+                ),
+              ),
+            ],
+          );
+        },
+      ),
+    );
+    return pdf.save();
+  }
+
+  // Helper para construir celdas de tabla estándar
+  static pw.Widget _buildTableCell(
+      String label, String value, 
+      double labelFontSize, double valueFontSize,
+      pw.EdgeInsets padding, double height,
+      {bool isCurrency = false, bool isSignature = false, int valueMaxLines = 1}) {
+    return pw.Container(
+      padding: padding,
+      height: height,
+      child: pw.Column(
+        crossAxisAlignment: pw.CrossAxisAlignment.start,
+        mainAxisAlignment: pw.MainAxisAlignment.center,
+        children: [
+          pw.Text(label, style: pw.TextStyle(fontSize: labelFontSize, fontWeight: pw.FontWeight.bold)),
+          pw.SizedBox(height: 3),
+          if (!isSignature)
+            pw.Expanded(
+              child: pw.Text(
+                value,
+                style: pw.TextStyle(
+                  fontSize: valueFontSize,
+                  fontWeight: isCurrency ? pw.FontWeight.bold : pw.FontWeight.normal,
+                ),
+                textAlign: isCurrency ? pw.TextAlign.center : pw.TextAlign.left,
+                maxLines: valueMaxLines,
+                overflow: pw.TextOverflow.clip,
+              ),
+            )
+          else
+            pw.Expanded(child: pw.Container()),
+        ],
+      ),
+    );
+  }
+
+  // Helper para celdas con múltiples campos
+  static pw.Widget _buildMultiFieldCell(
+      List<Map<String, String>> fields,
+      double labelFontSize, double valueFontSize,
+      pw.EdgeInsets padding, double height) {
+    return pw.Container(
+      padding: padding,
+      height: height,
+      child: pw.Column(
+        crossAxisAlignment: pw.CrossAxisAlignment.start,
+        mainAxisAlignment: pw.MainAxisAlignment.spaceEvenly,
+        children: [
+          for (var field in fields) ...[
+            pw.Row(
+              children: [
+                pw.Text(field['label']!, style: pw.TextStyle(fontSize: labelFontSize, fontWeight: pw.FontWeight.bold)),
+                pw.SizedBox(width: 5),
+                pw.Expanded(
+                  child: pw.Text(
+                    field['value']!,
+                    style: pw.TextStyle(fontSize: valueFontSize),
+                  ),
+                ),
+              ],
+            ),
+          ],
+        ],
+      ),
+    );
+  }
+
+  // Helper para celdas de checkbox
+  static pw.Widget _buildCheckboxCell(String label, bool checked, double fontSize, pw.EdgeInsets padding, double height) {
+    return pw.Container(
+      padding: padding,
+      height: height,
+      child: pw.Column(
+        mainAxisAlignment: pw.MainAxisAlignment.center,
+        children: [
+          pw.Container(
+            width: ${config.checkboxSize},
+            height: ${config.checkboxSize},
+            margin: const pw.EdgeInsets.only(bottom: 4),
+            decoration: pw.BoxDecoration(
+              border: pw.Border.all(color: PdfColors.black, width: 1),
+              color: checked ? PdfColors.black : PdfColors.white,
+            ),
+            child: checked ? 
+              pw.Center(
+                child: pw.Text('X', 
+                  style: pw.TextStyle(
+                    fontSize: ${config.checkboxFontSize}, 
+                    fontWeight: pw.FontWeight.bold, 
+                    color: PdfColors.white
+                  )
+                )
+              ) : null,
+          ),
+          pw.Text(
+            label, 
+            style: pw.TextStyle(fontSize: fontSize, fontWeight: pw.FontWeight.bold),
+            textAlign: pw.TextAlign.center,
+          ),
+        ],
+      ),
+    );
+  }
+
+  // Helper para bloques de firma
+  static pw.Widget _buildPdfSignatureBlock(String label, String aclaracion, double labelFontSize, double valueFontSize) {
+    return pw.Column(
+      crossAxisAlignment: pw.CrossAxisAlignment.center,
+      children: [
+        pw.Container(
+          width: ${config.signatureLineLength}, 
+          height: ${config.signatureLineHeight}, 
+          decoration: const pw.BoxDecoration(
+            border: pw.Border(bottom: pw.BorderSide(color: PdfColors.black, width: ${config.signatureLineWidth})),
+          ),
+        ),
+        pw.SizedBox(height: 5),
+        pw.Text(
+          label, 
+          style: pw.TextStyle(fontSize: labelFontSize, fontWeight: pw.FontWeight.bold), 
+          textAlign: pw.TextAlign.center
+        ),
+        if (aclaracion.trim().isNotEmpty) ...[
+          pw.SizedBox(height: 2),
+          pw.Text(
+            aclaracion, 
+            style: pw.TextStyle(fontSize: labelFontSize - 1, fontStyle: pw.FontStyle.italic), 
+            textAlign: pw.TextAlign.center
+          ),
+        ],
+      ],
+    );
+  }
+}`;
+        }
+
+        // Función para aplicar syntax highlighting
+        function applySyntaxHighlighting(code) {
+            return code
+                .replace(/(class|static|Future|String|bool|double|const|final|if|else|for|return|import|as|pw\.)/g, '<span class="syntax-keyword">$1</span>')
+                .replace(/'([^']*)'/g, '<span class="syntax-string">\'$1\'</span>')
+                .replace(/(\d+\.?\d*)/g, '<span class="syntax-number">$1</span>')
+                .replace(/(\/\/.*)/g, '<span class="syntax-comment">$1</span>')
+                .replace(/(PdfGenerator|Expense|DateFormatters)/g, '<span class="syntax-class">$1</span>')
+                .replace(/(_build\w+|generarAutorizacionDesembolso)/g, '<span class="syntax-function">$1</span>');
+        }
+
+        // Función para actualizar el código
+        function updateCode() {
+            const code = generateCode();
+            const highlightedCode = applySyntaxHighlighting(code);
+            document.getElementById('codeOutput').innerHTML = highlightedCode;
+        }
+
+        // Función para copiar el código
+        function copyCode() {
+            const code = generateCode();
+            navigator.clipboard.writeText(code).then(() => {
+                const notification = document.getElementById('notification');
+                notification.classList.add('show');
+                setTimeout(() => {
+                    notification.classList.remove('show');
+                }, 2000);
+            });
+        }
+
+        // Función para alternar la vista del código
+        function toggleCode() {
+            const codePanel = document.getElementById('codePanel');
+            const mainContent = document.getElementById('mainContent');
+            const button = document.querySelector('.toggle-code');
+            
+            if (codePanel.classList.contains('hidden')) {
+                codePanel.classList.remove('hidden');
+                mainContent.classList.remove('no-code');
+                button.textContent = '👁️ Ocultar';
+            } else {
+                codePanel.classList.add('hidden');
+                mainContent.classList.add('no-code');
+                button.textContent = '👁️ Mostrar';
+            }
+        }
+
+        // Event listeners para los controles
+        function setupEventListeners() {
+            Object.keys(config).forEach(key => {
+                const element = document.getElementById(key);
+                if (element) {
+                    element.addEventListener('input', (e) => {
+                        config[key] = parseFloat(e.target.value);
+                        const valueDisplay = document.getElementById(key + 'Value');
+                        if (valueDisplay) {
+                            valueDisplay.textContent = e.target.value;
+                        }
+                        updatePreview();
+                        updateCode();
+                    });
+                }
+            });
+        }
+
+        // Inicialización
+        document.addEventListener('DOMContentLoaded', () => {
+            setupEventListeners();
+            updatePreview();
+            updateCode();
+        });
+    </script>
+</body>
+</html>
